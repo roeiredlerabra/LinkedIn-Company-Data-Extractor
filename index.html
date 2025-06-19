@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LinkedIn Company Data Extractor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #0077b5 0%, #005885 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .input-section {
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .url-input {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .url-input:focus {
+            outline: none;
+            border-color: #0077b5;
+        }
+        
+        .extract-btn {
+            background: #0077b5;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .extract-btn:hover {
+            background: #005885;
+        }
+        
+        .extract-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .proxy-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 18px;
+            color: #666;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #0077b5;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .results-section {
+            padding: 30px;
+        }
+        
+        .image-preview {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .image-item {
+            flex: 1;
+            text-align: center;
+        }
+        
+        .image-item h4 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .image-item img {
+            max-width: 100%;
+            max-height: 150px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .no-image {
+            width: 150px;
+            height: 100px;
+            background: #e9ecef;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            margin: 0 auto;
+        }
+        
+        .json-container {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            position: relative;
+        }
+        
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #4299e1;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .copy-btn:hover {
+            background: #3182ce;
+        }
+        
+        pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .json-key { color: #81e6d9; }
+        .json-string { color: #f6e05e; }
+        .json-number { color: #90cdf4; }
+        .json-boolean { color: #fc8181; }
+        .json-null { color: #a0aec0; }
+        
+        .error {
+            background: #fed7d7;
+            border: 1px solid #feb2b2;
+            color: #c53030;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .alternatives {
+            background: #e6fffa;
+            border: 1px solid #81e6d9;
+            color: #285e61;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .alternatives h3 {
+            margin-bottom: 15px;
+            color: #2c7a7b;
+        }
+        
+        .alternatives ul {
+            list-style-position: inside;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 LinkedIn Company Data Extractor</h1>
+            <p>Extract and view company information in JSON format</p>
+        </div>
+        
+        <div class="input-section">
+            <div class="warning">
+                <strong>⚠️ CORS Limitation:</strong> Due to browser security policies, direct fetching from LinkedIn is blocked. 
+                Enable the proxy option below or use the suggested alternatives.
+            </div>
+            
+            <div class="input-group">
+                <input 
+                    type="url" 
+                    class="url-input" 
+                    id="linkedinUrl" 
+                    placeholder="Enter LinkedIn company URL (e.g., https://il.linkedin.com/company/mondaydotcom)"
+                    value="https://il.linkedin.com/company/mondaydotcom"
+                >
+                <button class="extract-btn" id="extractBtn">Extract Data</button>
+            </div>
+            
+            <div class="proxy-option">
+                <input type="checkbox" id="useProxy" checked>
+                <label for="useProxy">Use CORS proxy (cors-anywhere.herokuapp.com)</label>
+            </div>
+        </div>
+        
+        <div id="results" class="results-section" style="display: none;">
+            <h2>Extracted Company Data</h2>
+            
+            <div id="imagePreview" class="image-preview">
+                <div class="image-item">
+                    <h4>Profile Image</h4>
+                    <div id="profileImageContainer"></div>
+                </div>
+                <div class="image-item">
+                    <h4>Cover Image</h4>
+                    <div id="coverImageContainer"></div>
+                </div>
+            </div>
+            
+            <div class="json-container">
+                <button class="copy-btn" onclick="copyToClipboard()">📋 Copy</button>
+                <pre id="jsonOutput"></pre>
+            </div>
+        </div>
+        
+        <div id="loading" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            Extracting company data...
+        </div>
+        
+        <div id="error" class="error" style="display: none;"></div>
+        
+        <div class="alternatives">
+            <h3>🛠️ Alternative Solutions:</h3>
+            <ul>
+                <li><strong>Browser Extension:</strong> Create a browser extension that can access LinkedIn pages directly</li>
+                <li><strong>Server-side Solution:</strong> Build a backend service that fetches and parses LinkedIn pages</li>
+                <li><strong>Puppeteer/Playwright:</strong> Use headless browser automation tools</li>
+                <li><strong>LinkedIn API:</strong> Use official LinkedIn API for business use cases</li>
+                <li><strong>Web Scraping Services:</strong> Use services like ScrapingBee, Apify, or similar</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        class LinkedInExtractor {
+            constructor() {
+                this.initEventListeners();
+            }
+            
+            initEventListeners() {
+                document.getElementById('extractBtn').addEventListener('click', () => this.extractData());
+                document.getElementById('linkedinUrl').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.extractData();
+                });
+            }
+            
+            async extractData() {
+                const url = document.getElementById('linkedinUrl').value.trim();
+                const useProxy = document.getElementById('useProxy').checked;
+                
+                if (!this.isValidLinkedInUrl(url)) {
+                    this.showError('Please enter a valid LinkedIn company URL');
+                    return;
+                }
+                
+                this.showLoading();
+                this.hideResults();
+                this.hideError();
+                
+                try {
+                    const html = await this.fetchPage(url, useProxy);
+                    const companyData = this.parseCompanyData(html);
+                    this.displayResults(companyData);
+                } catch (error) {
+                    this.showError(`Failed to extract data: ${error.message}`);
+                } finally {
+                    this.hideLoading();
+                }
+            }
+            
+            isValidLinkedInUrl(url) {
+                try {
+                    const urlObj = new URL(url);
+                    return urlObj.hostname.includes('linkedin.com') && 
+                           urlObj.pathname.includes('/company/');
+                } catch {
+                    return false;
+                }
+            }
+            
+            async fetchPage(url, useProxy) {
+                const targetUrl = useProxy ? `https://cors-anywhere.herokuapp.com/${url}` : url;
+                
+                const response = await fetch(targetUrl, {
+                    method: 'GET',
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                        'Accept-Language': 'en-US,en;q=0.5',
+                        'Accept-Encoding': 'gzip, deflate',
+                        'Connection': 'keep-alive',
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                return await response.text();
+            }
+            
+            parseCompanyData(html) {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                // Extract company data using various selectors and patterns
+                const companyData = {
+                    companyName: this.extractCompanyName(html, doc),
+                    industry: this.extractIndustry(html, doc),
+                    location: this.extractLocation(html, doc),
+                    followers: this.extractFollowers(html, doc),
+                    employeeCount: this.extractEmployeeCount(html, doc),
+                    website: this.extractWebsite(html, doc),
+                    companyType: this.extractCompanyType(html, doc),
+                    description: this.extractDescription(html, doc),
+                    images: {
+                        profileImageUrl: this.extractProfileImage(html, doc),
+                        coverImageUrl: this.extractCoverImage(html, doc)
+                    },
+                    services: this.extractServices(html, doc),
+                    partners: this.extractPartners(html, doc),
+                    recentPosts: this.extractRecentPosts(html, doc),
+                    extractedAt: new Date().toISOString(),
+                    sourceUrl: document.getElementById('linkedinUrl').value
+                };
+                
+                return companyData;
+            }
+            
+            extractProfileImage(html, doc) {
+                // Try multiple selectors for profile/logo image
+                const selectors = [
+                    '.top-card-layout__entity-image',
+                    '.org-top-card-summary__logo img',
+                    '.company-logo img',
+                    '[data-test-id="organization-logo"] img',
+                    'img[alt*="logo"]',
+                    'img[alt*="Logo"]'
+                ];
+                
+                for (const selector of selectors) {
+                    const element = doc.querySelector(selector);
+                    if (element) {
+                        // Check for data-delayed-url first (LinkedIn's lazy loading)
+                        const delayedUrl = element.getAttribute('data-delayed-url');
+                        if (delayedUrl) return delayedUrl;
+                        
+                        // Check for src attribute
+                        const src = element.getAttribute('src');
+                        if (src && src !== '#' && !src.includes('ghost')) return src;
+                    }
+                }
+                
+                // Try to extract from structured data
+                const structuredData = this.extractStructuredData(html);
+                if (structuredData && structuredData.logo) {
+                    if (typeof structuredData.logo === 'string') return structuredData.logo;
+                    if (structuredData.logo.contentUrl) return structuredData.logo.contentUrl;
+                    if (structuredData.logo.url) return structuredData.logo.url;
+                }
+                
+                // Fallback to regex pattern for image URLs in the HTML
+                const imageUrlPattern = /https:\/\/media\.licdn\.com\/dms\/image\/[^"'\s>]+company-logo[^"'\s>]*/g;
+                const matches = html.match(imageUrlPattern);
+                if (matches && matches.length > 0) {
+                    return matches[0];
+                }
+                
+                return null;
+            }
+            
+            extractCoverImage(html, doc) {
+                // Try multiple selectors for cover image
+                const selectors = [
+                    '.cover-img__image',
+                    '.org-top-card-summary__cover img',
+                    '.top-card-layout .cover-img img',
+                    '[data-test-id="cover-image"]',
+                    '.company-cover img'
+                ];
+                
+                for (const selector of selectors) {
+                    const element = doc.querySelector(selector);
+                    if (element) {
+                        // Check for data-delayed-url first
+                        const delayedUrl = element.getAttribute('data-delayed-url');
+                        if (delayedUrl) return delayedUrl;
+                        
+                        // Check for src attribute
+                        const src = element.getAttribute('src');
+                        if (src && src !== '#' && !src.includes('ghost')) return src;
+                    }
+                }
+                
+                // Look for cover image in CSS background-image
+                const coverElements = doc.querySelectorAll('[style*="background-image"]');
+                for (const element of coverElements) {
+                    const style = element.getAttribute('style');
+                    const urlMatch = style.match(/background-image:\s*url\(['"]?([^'")\s]+)['"]?\)/);
+                    if (urlMatch && urlMatch[1].includes('cover')) {
+                        return urlMatch[1];
+                    }
+                }
+                
+                // Fallback to regex pattern for cover image URLs
+                const coverImagePattern = /https:\/\/media\.licdn\.com\/dms\/image\/[^"'\s>]+cover[^"'\s>]*/g;
+                const matches = html.match(coverImagePattern);
+                if (matches && matches.length > 0) {
+                    return matches[0];
+                }
+                
+                return null;
+            }
+            
+            extractStructuredData(html) {
+                try {
+                    // Look for JSON-LD structured data
+                    const jsonLdMatch = html.match(/<script[^>]*type="application\/ld\+json"[^>]*>(.*?)<\/script>/gs);
+                    if (jsonLdMatch) {
+                        for (const match of jsonLdMatch) {
+                            const jsonContent = match.replace(/<script[^>]*>/, '').replace(/<\/script>/, '');
+                            try {
+                                const data = JSON.parse(jsonContent);
+                                if (data['@type'] === 'Organization' || (Array.isArray(data['@graph']) && data['@graph'].some(item => item['@type'] === 'Organization'))) {
+                                    return Array.isArray(data['@graph']) ? data['@graph'].find(item => item['@type'] === 'Organization') : data;
+                                }
+                            } catch (e) {
+                                // Continue to next match
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Failed to parse structured data:', e);
+                }
+                return null;
+            }
+            
+            extractCompanyName(html, doc) {
+                // Try multiple selectors for company name
+                const selectors = [
+                    '.top-card-layout__title',
+                    'h1[data-test-id="top-card-title"]',
+                    '.org-top-card-summary__title'
+                ];
+                
+                for (const selector of selectors) {
+                    const element = doc.querySelector(selector);
+                    if (element && element.textContent.trim()) {
+                        return element.textContent.trim();
+                    }
+                }
+                
+                // Fallback to regex pattern
+                const titleMatch = html.match(/<title>([^|]+)/);
+                return titleMatch ? titleMatch[1].trim() : null;
+            }
+            
+            extractIndustry(html, doc) {
+                const selectors = [
+                    '.top-card-layout__headline',
+                    '[data-test-id="about-us__industry"] dd'
+                ];
+                
+                return this.extractBySelectors(doc, selectors);
+            }
+            
+            extractLocation(html, doc) {
+                const locationText = this.extractBySelectors(doc, [
+                    '.top-card-layout__first-subline',
+                    '[data-test-id="about-us__headquarters"] dd'
+                ]);
+                
+                if (locationText) {
+                    const parts = locationText.split(',').map(s => s.trim());
+                    return {
+                        full: locationText,
+                        city: parts[0] || null,
+                        region: parts[1] || null,
+                        country: parts[2] || null
+                    };
+                }
+                return null;
+            }
+            
+            extractFollowers(html, doc) {
+                const followersMatch = html.match(/(\d+(?:[,.]?\d+)*)\s*(?:עוקבים|followers)/i);
+                if (followersMatch) {
+                    const numberStr = followersMatch[1];
+                    return parseInt(numberStr.replace(/[,.']/g, ''));
+                }
+                return null;
+            }
+            
+            extractEmployeeCount(html, doc) {
+                return this.extractBySelectors(doc, [
+                    '[data-test-id="about-us__size"] dd',
+                    '.org-about-us__size'
+                ]);
+            }
+            
+            extractWebsite(html, doc) {
+                const websiteElement = doc.querySelector('[data-test-id="about-us__website"] a');
+                return websiteElement ? websiteElement.href : null;
+            }
+            
+            extractCompanyType(html, doc) {
+                return this.extractBySelectors(doc, [
+                    '[data-test-id="about-us__organizationType"] dd'
+                ]);
+            }
+            
+            extractDescription(html, doc) {
+                return this.extractBySelectors(doc, [
+                    '[data-test-id="about-us__description"]',
+                    '.org-about-us__description'
+                ]);
+            }
+            
+            extractServices(html, doc) {
+                const description = this.extractDescription(html, doc);
+                if (!description) return [];
+                
+                // Extract common IT services from description
+                const services = [];
+                const serviceKeywords = [
+                    'BI', 'AI', 'ERP', 'CRM', 'Cyber', 'Cloud', 'Infrastructure',
+                    'R&D', 'Web', 'Mobile', 'e-Commerce', 'Analytics', 'DevOps'
+                ];
+                
+                serviceKeywords.forEach(keyword => {
+                    if (description.toLowerCase().includes(keyword.toLowerCase())) {
+                        services.push(keyword);
+                    }
+                });
+                
+                return services;
+            }
+            
+            extractPartners(html, doc) {
+                const description = this.extractDescription(html, doc);
+                if (!description) return [];
+                
+                const partners = [];
+                const partnerKeywords = [
+                    'Microsoft', 'Salesforce', 'SAP', 'Oracle', 'AWS', 'Google',
+                    'IBM', 'Adobe', 'Red Hat', 'monday.com', 'Priority', 'Magento'
+                ];
+                
+                partnerKeywords.forEach(partner => {
+                    if (description.includes(partner)) {
+                        partners.push(partner);
+                    }
+                });
+                
+                return partners;
+            }
+            
+            extractRecentPosts(html, doc) {
+                const posts = [];
+                const postElements = doc.querySelectorAll('[data-test-id="main-feed-activity-card__commentary"]');
+                
+                postElements.forEach((post, index) => {
+                    if (index < 3) { // Limit to 3 recent posts
+                        const text = post.textContent.trim();
+                        if (text) {
+                            posts.push({
+                                preview: text.substring(0, 200) + (text.length > 200 ? '...' : ''),
+                                fullText: text
+                            });
+                        }
+                    }
+                });
+                
+                return posts;
+            }
+            
+            extractBySelectors(doc, selectors) {
+                for (const selector of selectors) {
+                    const element = doc.querySelector(selector);
+                    if (element && element.textContent.trim()) {
+                        return element.textContent.trim();
+                    }
+                }
+                return null;
+            }
+            
+            displayResults(data) {
+                const jsonOutput = document.getElementById('jsonOutput');
+                const formattedJson = this.formatJson(data);
+                jsonOutput.innerHTML = formattedJson;
+                
+                // Display image previews
+                this.displayImagePreviews(data.images);
+                
+                document.getElementById('results').style.display = 'block';
+            }
+            
+            displayImagePreviews(images) {
+                const profileContainer = document.getElementById('profileImageContainer');
+                const coverContainer = document.getElementById('coverImageContainer');
+                
+                // Display profile image
+                if (images.profileImageUrl) {
+                    profileContainer.innerHTML = `<img src="${images.profileImageUrl}" alt="Profile Image" onerror="this.style.display='none'">`;
+                } else {
+                    profileContainer.innerHTML = '<div class="no-image">No Image</div>';
+                }
+                
+                // Display cover image
+                if (images.coverImageUrl) {
+                    coverContainer.innerHTML = `<img src="${images.coverImageUrl}" alt="Cover Image" onerror="this.style.display='none'">`;
+                } else {
+                    coverContainer.innerHTML = '<div class="no-image">No Image</div>';
+                }
+            }
+            
+            formatJson(obj, indent = 0) {
+                const spaces = '  '.repeat(indent);
+                
+                if (obj === null) return `<span class="json-null">null</span>`;
+                if (typeof obj === 'boolean') return `<span class="json-boolean">${obj}</span>`;
+                if (typeof obj === 'number') return `<span class="json-number">${obj}</span>`;
+                if (typeof obj === 'string') return `<span class="json-string">"${obj}"</span>`;
+                
+                if (Array.isArray(obj)) {
+                    if (obj.length === 0) return '[]';
+                    
+                    let result = '[\n';
+                    obj.forEach((item, index) => {
+                        result += `${spaces}  ${this.formatJson(item, indent + 1)}`;
+                        if (index < obj.length - 1) result += ',';
+                        result += '\n';
+                    });
+                    result += `${spaces}]`;
+                    return result;
+                }
+                
+                if (typeof obj === 'object') {
+                    const keys = Object.keys(obj);
+                    if (keys.length === 0) return '{}';
+                    
+                    let result = '{\n';
+                    keys.forEach((key, index) => {
+                        result += `${spaces}  <span class="json-key">"${key}"</span>: ${this.formatJson(obj[key], indent + 1)}`;
+                        if (index < keys.length - 1) result += ',';
+                        result += '\n';
+                    });
+                    result += `${spaces}}`;
+                    return result;
+                }
+                
+                return String(obj);
+            }
+            
+            showLoading() {
+                document.getElementById('loading').style.display = 'block';
+            }
+            
+            hideLoading() {
+                document.getElementById('loading').style.display = 'none';
+            }
+            
+            showError(message) {
+                const errorDiv = document.getElementById('error');
+                errorDiv.textContent = message;
+                errorDiv.style.display = 'block';
+            }
+            
+            hideError() {
+                document.getElementById('error').style.display = 'none';
+            }
+            
+            hideResults() {
+                document.getElementById('results').style.display = 'none';
+            }
+        }
+        
+        // Copy to clipboard function
+        function copyToClipboard() {
+            const jsonOutput = document.getElementById('jsonOutput');
+            const text = jsonOutput.textContent;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const copyBtn = document.querySelector('.copy-btn');
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = '✅ Copied!';
+                setTimeout(() => {
+                    copyBtn.textContent = originalText;
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+            });
+        }
+        
+        // Initialize the extractor
+        document.addEventListener('DOMContentLoaded', () => {
+            new LinkedInExtractor();
+        });
+    </script>
+</body>
+</html>
