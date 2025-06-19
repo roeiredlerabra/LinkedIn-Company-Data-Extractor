@@ -43,10 +43,9 @@ A powerful, client-side web application that extracts comprehensive company info
 ## 📸 Screenshots
 
 ### Main Interface
-![Main Interface](https://via.placeholder.com/800x400/0077b5/white?text=LinkedIn+Company+Data+Extractor)
+![Main Interface]([https://via.placeholder.com/800x400/0077b5/white?text=LinkedIn+Company+Data+Extractor](https://github.com/roeiredlerabra/LinkedIn-Company-Data-Extractor/blob/main/img/iPad-PRO-11-roeiredlerabra.github.io.png?raw=true))
 
-### Extracted Data Display
-![Data Display](https://via.placeholder.com/800x500/2d3748/e2e8f0?text=JSON+Output+with+Syntax+Highlighting)
+
 
 ## 🛠️ Installation
 
