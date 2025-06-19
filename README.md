@@ -1,3 +1,5 @@
+
+
 # LinkedIn Company Data Extractor
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -79,7 +81,7 @@ A powerful, client-side web application that extracts comprehensive company info
 1. Fork this repository
 2. Go to Settings → Pages
 3. Select source branch (usually `main`)
-4. Access via `https://yourusername.github.io/linkedin-company-extractor`
+4. Access via `https://roeiredlerabra.github.io/linkedin-company-extractor`
 
 #### Netlify
 1. Drag and drop the HTML file to [Netlify Drop](https://app.netlify.com/drop)
@@ -92,6 +94,20 @@ A powerful, client-side web application that extracts comprehensive company info
 
 ## 📖 Usage Guide
 
+### ⚡ Quick Setup (IMPORTANT)
+
+**Before using the extractor, you MUST enable CORS proxy access:**
+
+1. **Enable CORS Proxy Access:**
+   - Visit: [cors-anywhere.herokuapp.com/corsdemo](https://cors-anywhere.herokuapp.com/corsdemo)
+   - Click "Request temporary access to the demo server" button
+   - This enables access for a limited time (usually 1 hour)
+
+2. **Alternative CORS Solutions:**
+   - Use your own CORS proxy server
+   - Deploy a browser extension version
+   - Use server-side implementation
+
 ### Basic Usage
 
 1. **Enter LinkedIn Company URL:**
@@ -101,7 +117,7 @@ A powerful, client-side web application that extracts comprehensive company info
 
 2. **Configure Options:**
    - ✅ Enable "Use CORS proxy" for best results
-   - The default proxy (cors-anywhere.herokuapp.com) should work for most cases
+   - The default proxy (cors-anywhere.herokuapp.com) should work after enabling access
 
 3. **Extract Data:**
    - Click "Extract Data" button
@@ -202,6 +218,8 @@ The application uses a pure client-side architecture:
 
 **Solutions:**
 1. **CORS Proxy (Default):** Uses cors-anywhere.herokuapp.com
+   - **🚨 REQUIRED:** Visit [cors-anywhere.herokuapp.com/corsdemo](https://cors-anywhere.herokuapp.com/corsdemo) and click "Request temporary access"
+   - Access expires after ~1 hour and needs to be renewed
 2. **Browser Extension:** Create extension with proper permissions
 3. **Server-side Proxy:** Host your own CORS proxy
 4. **Local Development:** Disable browser security (not recommended for production)
@@ -342,9 +360,21 @@ Access to fetch at 'https://linkedin.com/...' has been blocked by CORS policy
 ```
 
 **Solutions:**
-- ✅ Enable "Use CORS proxy" option
+- 🚨 **FIRST:** Visit [cors-anywhere.herokuapp.com/corsdemo](https://cors-anywhere.herokuapp.com/corsdemo) and click "Request temporary access to the demo server"
+- ✅ Enable "Use CORS proxy" option in the tool
 - Try alternative proxy services
 - Use browser extension version
+
+#### CORS Demo Access Required
+```
+Access to demo server has been blocked by CORS policy
+```
+
+**Solutions:**
+- Visit: [cors-anywhere.herokuapp.com/corsdemo](https://cors-anywhere.herokuapp.com/corsdemo)
+- Click the "Request temporary access to the demo server" button
+- Access is granted for approximately 1 hour
+- Repeat this process when access expires
 
 #### Proxy Timeout
 ```
@@ -355,6 +385,7 @@ Failed to extract data: Network timeout
 - Refresh and try again
 - Check internet connection
 - Try different LinkedIn URL
+- Ensure CORS demo access is still active
 
 #### Empty Results
 ```
@@ -507,6 +538,9 @@ A: This tool is for educational purposes. Review LinkedIn's ToS for your specifi
 
 **Q: Can I extract data from private company pages?**
 A: No, this only works with publicly accessible company pages.
+
+**Q: The CORS proxy isn't working, what should I do?**
+A: First visit [cors-anywhere.herokuapp.com/corsdemo](https://cors-anywhere.herokuapp.com/corsdemo) and enable temporary access. This needs to be done approximately every hour.
 
 ---
 
